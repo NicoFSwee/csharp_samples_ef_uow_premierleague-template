@@ -1,10 +1,12 @@
-﻿using PremierLeague.Core;
+﻿using ConsoleTables;
+using PremierLeague.Core;
 using PremierLeague.Core.Contracts;
 using PremierLeague.Core.Entities;
 using PremierLeague.Persistence;
 using Serilog;
 using System;
 using System.Linq;
+using Utils;
 
 namespace PremierLeague.ImportConsole
 {
@@ -53,9 +55,11 @@ namespace PremierLeague.ImportConsole
 
                 Log.Information("Datenbank löschen");
                 // TODO: Datenbank löschen
+                unitOfWork.DeleteDatabase();
 
                 Log.Information("Datenbank migrieren");
                 // TODO: Datenbank migrieren
+                unitOfWork.MigrateDatabase();
 
                 Log.Information("Spiele werden von premierleague.csv eingelesen");
                 var games = ImportController.ReadFromCsv().ToArray();
@@ -68,12 +72,15 @@ namespace PremierLeague.ImportConsole
                     Log.Debug($"  Es wurden {games.Count()} Spiele eingelesen!");
 
                     // TODO: Teams aus den Games ermitteln
-                    var teams = Enumerable.Empty<Team>();
+                    var teams = games.Select(g => g.HomeTeam).Distinct();
                     Log.Debug($"  Es wurden {teams.Count()} Teams eingelesen!");
 
                     Log.Information("Daten werden in Datenbank gespeichert (in Context übertragen)");
+                    unitOfWork.Games.AddRange(games);
+                    unitOfWork.Teams.AddRange(teams);
 
                     // TODO: Teams/Games in der Datenbank speichern
+                    unitOfWork.SaveChanges();
                     Log.Information("Daten wurden in DB gespeichert!");
                 }
             }
@@ -81,7 +88,40 @@ namespace PremierLeague.ImportConsole
 
         private static void AnalyzeData()
         {
-            throw new NotImplementedException();
+            using (IUnitOfWork unitOfWork = new UnitOfWork())
+            {
+                var teamWithHighestGoals = unitOfWork.Teams.GetTeamWithBestTotalGoalCountAsNamedTuplet();
+                PrintResult("Team mit den meisten geschossenen Toren:", $"{teamWithHighestGoals.Name}: {teamWithHighestGoals.GoalCount} Tore");
+                Console.WriteLine();
+
+                var teamWithMostGoalsAsGuest = unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.TotalGoalsAsGuest).First();
+                PrintResult("Team mit den meisten geschossenen Auswärtstoren:", $"{teamWithMostGoalsAsGuest.Name}: {teamWithMostGoalsAsGuest.TotalGoalsAsGuest} Auswärtstore");
+                Console.WriteLine();
+
+                var teamWithMostGoalsAtHome= unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.TotalGoalsAtHome).First();
+                PrintResult("Team mit den meisten geschossenen Heimtoren:", $"{teamWithMostGoalsAtHome.Name}: {teamWithMostGoalsAtHome.TotalGoalsAtHome} Heimtore");
+                Console.WriteLine();
+
+                var teamWithBestGoalDifference = unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.OverallGoalDifference).First();
+                PrintResult("Team mit dem besten Torverhältnis:", $"{teamWithBestGoalDifference.Name}: {teamWithBestGoalDifference.OverallGoalDifference} Torverhältnis");
+                Console.WriteLine();
+
+                var teamStatisticsAvg = unitOfWork.Teams.GetTeamStatisticDtos();
+                string tmp = ConsoleTable
+                    .From(teamStatisticsAvg)
+                    .Configure(o => o.NumberAlignment = Alignment.Right)
+                    .ToStringAlternative();
+                PrintResult("Teamleistung im Durchschnitt (sortiert nach durchschnittlich geschossenen Toren pro Spiel):", tmp);
+                Console.WriteLine();
+
+                var teamTable = unitOfWork.Teams.GetTeamTableRowDtos();
+                tmp = ConsoleTable
+                    .From(teamTable)
+                    .Configure(o => o.NumberAlignment = Alignment.Right)
+                    .ToStringAlternative();
+                PrintResult("Team Tabelle (sortiert nach Rang):", tmp);
+                Console.WriteLine();
+            }
         }
 
         /// <summary>
@@ -108,7 +148,5 @@ namespace PremierLeague.ImportConsole
             Console.ResetColor();
             Console.WriteLine();
         }
-
-
     }
 }

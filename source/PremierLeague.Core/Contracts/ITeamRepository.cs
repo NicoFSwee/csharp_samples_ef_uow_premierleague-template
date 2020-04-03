@@ -11,5 +11,10 @@ namespace PremierLeague.Core.Contracts
         void AddRange(IEnumerable<Team> teams);
         Team Get(int teamId);
         void Add(Team team);
+        (string Name, int GoalCount)[] GetTeamsWithTotalGoalCountAsNamedTuplets();
+        (string Name, int GoalCount) GetTeamWithBestTotalGoalCountAsNamedTuplet();
+        (string Name, int TotalGoalsAtHome, int TotalGoalsAsGuest, int OverallGoalDifference)[] GetTeamsWithGoalStatisticsAsNamedTuplet();
+        TeamStatisticDto[] GetTeamStatisticDtos();
+        TeamTableRowDto[] GetTeamTableRowDtos();
     }
 }

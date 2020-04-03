@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PremierLeague.Core.Contracts;
+using PremierLeague.Core.DataTransferObjects;
 using PremierLeague.Core.Entities;
 using System.Collections.Generic;
 using System.Linq;

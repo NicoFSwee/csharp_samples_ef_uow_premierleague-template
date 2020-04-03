@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using PremierLeague.Core.DataTransferObjects;
 using PremierLeague.Core.Entities;
+using System.Collections.Generic;
 
 namespace PremierLeague.Core.Contracts
 {

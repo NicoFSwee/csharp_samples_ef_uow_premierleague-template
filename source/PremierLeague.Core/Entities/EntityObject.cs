@@ -8,7 +8,7 @@ namespace PremierLeague.Core.Entities
         public int Id { get; set; }
 
         [Timestamp]
-        public byte[] RowVersion
+        public byte[] Timestamp
         {
             get;
             set;
