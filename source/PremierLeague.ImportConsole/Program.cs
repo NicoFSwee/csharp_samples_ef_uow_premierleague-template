@@ -77,7 +77,6 @@ namespace PremierLeague.ImportConsole
 
                     Log.Information("Daten werden in Datenbank gespeichert (in Context übertragen)");
                     unitOfWork.Games.AddRange(games);
-                    unitOfWork.Teams.AddRange(teams);
 
                     // TODO: Teams/Games in der Datenbank speichern
                     unitOfWork.SaveChanges();

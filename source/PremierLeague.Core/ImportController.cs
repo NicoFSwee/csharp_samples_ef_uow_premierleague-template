@@ -37,6 +37,12 @@ namespace PremierLeague.Core
                             })
                             .ToArray();
 
+            foreach (var game in games)
+            {
+                game.GuestTeam.AwayGames.Add(game);
+                game.HomeTeam.HomeGames.Add(game);
+            }
+
             return games;
         }
 
