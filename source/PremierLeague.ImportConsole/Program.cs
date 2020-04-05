@@ -90,19 +90,19 @@ namespace PremierLeague.ImportConsole
             using (IUnitOfWork unitOfWork = new UnitOfWork())
             {
                 var teamWithHighestGoals = unitOfWork.Teams.GetTeamWithBestTotalGoalCountAsNamedTuplet();
-                PrintResult("Team mit den meisten geschossenen Toren:", $"{teamWithHighestGoals.Name}: {teamWithHighestGoals.GoalCount} Tore");
+                PrintResult("Team mit den meisten geschossenen Toren:", $"{teamWithHighestGoals.Team.Name}: {teamWithHighestGoals.GoalCount} Tore");
                 Console.WriteLine();
 
-                var teamWithMostGoalsAsGuest = unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.TotalGoalsAsGuest).First();
-                PrintResult("Team mit den meisten geschossenen Auswärtstoren:", $"{teamWithMostGoalsAsGuest.Name}: {teamWithMostGoalsAsGuest.TotalGoalsAsGuest} Auswärtstore");
+                var teamGoalStatistics = unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.TotalGoalsAsGuest);
+                PrintResult("Team mit den meisten geschossenen Auswärtstoren:", $"{teamGoalStatistics.First().Team.Name}: {teamGoalStatistics.First().TotalGoalsAsGuest} Auswärtstore");
                 Console.WriteLine();
 
-                var teamWithMostGoalsAtHome= unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.TotalGoalsAtHome).First();
-                PrintResult("Team mit den meisten geschossenen Heimtoren:", $"{teamWithMostGoalsAtHome.Name}: {teamWithMostGoalsAtHome.TotalGoalsAtHome} Heimtore");
+                teamGoalStatistics = teamGoalStatistics.OrderByDescending(_ => _.TotalGoalsAtHome);
+                PrintResult("Team mit den meisten geschossenen Heimtoren:", $"{teamGoalStatistics.First().Team.Name}: {teamGoalStatistics.First().TotalGoalsAtHome} Heimtore");
                 Console.WriteLine();
 
-                var teamWithBestGoalDifference = unitOfWork.Teams.GetTeamsWithGoalStatisticsAsNamedTuplet().OrderByDescending(_ => _.OverallGoalDifference).First();
-                PrintResult("Team mit dem besten Torverhältnis:", $"{teamWithBestGoalDifference.Name}: {teamWithBestGoalDifference.OverallGoalDifference} Torverhältnis");
+                teamGoalStatistics = teamGoalStatistics.OrderByDescending(_ => _.OverallGoalDifference);
+                PrintResult("Team mit dem besten Torverhältnis:", $"{teamGoalStatistics.First().Team.Name}: {teamGoalStatistics.First().OverallGoalDifference} Torverhältnis");
                 Console.WriteLine();
 
                 var teamStatisticsAvg = unitOfWork.Teams.GetTeamStatisticDtos();

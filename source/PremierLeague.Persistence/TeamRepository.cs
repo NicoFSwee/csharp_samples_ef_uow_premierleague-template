@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PremierLeague.Core.Contracts;
 using PremierLeague.Core.DataTransferObjects;
 using PremierLeague.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -41,31 +42,31 @@ namespace PremierLeague.Persistence
             _dbContext.Teams.Add(team);
         }
 
-        public (string Name, int GoalCount)[] GetTeamsWithTotalGoalCountAsNamedTuplets() =>
+        public (Team Team, int GoalCount)[] GetTeamsWithTotalGoalCountAsNamedTuplets() =>
             _dbContext.Teams
             .Select(t => new
             {
-                Name = t.Name,
+                Team = t,
                 TotalGoalCount = t.AwayGames.Sum(_ => _.GuestGoals) + t.HomeGames.Sum(_ => _.HomeGoals)
             })
             .ToArray()
             .OrderByDescending(_ => _.TotalGoalCount)
-            .Select(_ => (_.Name, _.TotalGoalCount))
+            .Select(_ => (_.Team, _.TotalGoalCount))
             .ToArray();
-        public (string Name, int GoalCount) GetTeamWithBestTotalGoalCountAsNamedTuplet() => GetTeamsWithTotalGoalCountAsNamedTuplets().First();
+        public (Team Team, int GoalCount) GetTeamWithBestTotalGoalCountAsNamedTuplet() => GetTeamsWithTotalGoalCountAsNamedTuplets().First();
 
-        public (string Name, int TotalGoalsAtHome, int TotalGoalsAsGuest, int OverallGoalDifference)[] GetTeamsWithGoalStatisticsAsNamedTuplet() =>
+        public (Team Team, int TotalGoalsAtHome, int TotalGoalsAsGuest, int OverallGoalDifference)[] GetTeamsWithGoalStatisticsAsNamedTuplet() =>
             _dbContext.Teams
             .Select(t => new
             {
-                Name = t.Name,
+                Team = t,
                 TotalGoalsAtHome = t.HomeGames.Sum(_ => _.HomeGoals),
                 TotalGoalsAsGuests = t.AwayGames.Sum(_ => _.GuestGoals),
                 OverallGoalDifference = t.HomeGames.Sum(_ => _.HomeGoals) + t.AwayGames.Sum(_ => _.GuestGoals) - t.HomeGames.Sum(_ => _.GuestGoals) - t.AwayGames.Sum(_ => _.HomeGoals)
             })
             .ToArray()
-            .OrderByDescending(_ => _.Name)
-            .Select(_ => (_.Name, _.TotalGoalsAtHome, _.TotalGoalsAsGuests, _.OverallGoalDifference))
+            .OrderByDescending(_ => _.Team.Name)
+            .Select(_ => (_.Team, _.TotalGoalsAtHome, _.TotalGoalsAsGuests, _.OverallGoalDifference))
             .ToArray();
 
         public TeamStatisticDto[] GetTeamStatisticDtos() =>
@@ -77,8 +78,8 @@ namespace PremierLeague.Persistence
                 AvgGoalsGotAtHome = t.HomeGames.Average(_ => _.GuestGoals),
                 AvgGoalsShotOutwards = t.AwayGames.Average(_ => _.GuestGoals),
                 AvgGoalsGotOutwards = t.AwayGames.Average(_ => _.HomeGoals),
-                AvgGoalsShotInTotal = (t.HomeGames.Select(_ => _.HomeGoals).Average() + t.AwayGames.Select(_ => _.GuestGoals).Average()) / 2, 
-                AvgGoalsGotInTotal = (t.HomeGames.Select(_ => _.GuestGoals).Average() + t.AwayGames.Select(_ => _.HomeGoals).Average()) / 2
+                AvgGoalsShotInTotal = t.AwayGames.Select(g => g.GuestGoals).Concat(t.HomeGames.Select(g => g.HomeGoals)).Average(),
+                AvgGoalsGotInTotal = t.AwayGames.Select(g => g.HomeGoals).Concat(t.HomeGames.Select(g => g.GuestGoals)).Average()
             })
             .OrderByDescending(_ => _.AvgGoalsShotInTotal)
             .ToArray();
